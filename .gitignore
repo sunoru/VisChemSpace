@@ -1,1 +1,5 @@
-/testdata
+.vscode/
+/rawdata
+.ipynb_checkpoints/
+__pycache__/
+build/

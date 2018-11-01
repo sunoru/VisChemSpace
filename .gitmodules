@@ -1,3 +1,6 @@
 [submodule "proposal"]
 	path = proposal
 	url = git@github.com:sunoru/vischemspace_proposal
+[submodule "deps/sirms"]
+	path = deps/sirms
+	url = git@github.com:sunoru/sirms.git
