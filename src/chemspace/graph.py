@@ -1,9 +1,12 @@
+import os
+
 import numpy as np
 import pandas as pd
 import pickle
+import math
 from gephistreamer import graph, streamer
 from itertools import combinations
-
+from sklearn.metrics import cohen_kappa_score
 from chemspace import Fingerprints
 
 
@@ -22,15 +25,18 @@ class ChemicalSpaceGraph:
         # DOI: 10.1021/jm401411z</del>
         # TODO: Find a good method.
         # It's now just Euclidean distance.
-        return np.linalg.norm(x - y)
+        xx = np.ceil(x * 10)
+        yy = np.ceil(y * 10)
+        return (1 - cohen_kappa_score(xx, yy)) * 25
+        # return np.linalg.norm(x - y)
 
     def set_fingerprints(self, fingerprints: [Fingerprints]):
         self.fingerprints_df = pd.DataFrame({
             x.smiles: x.data for x in fingerprints
         })
 
-    def generate_graph(self, threshold=3000, log=False):
-        self.nodes = list(self.fingerprints_df.columns)
+    def generate_graph(self, threshold=20, log=False):
+        self.nodes = list(self.fingerprints_df.columns)  # [:200]  # TODO
         self.edges = {}
         possible_edges = list(combinations(self.nodes, 2))
         length = len(possible_edges)
@@ -60,9 +66,9 @@ class ChemicalSpaceGraph:
     @classmethod
     def from_file(cls, fingerprints, edges):
         x = cls()
-        if fingerprints:
+        if fingerprints and os.path.exists(fingerprints):
             x.fingerprints_df = pd.read_hdf(fingerprints, 'fingerprints')
-        if edges:
+        if edges and os.path.exists(edges):
             with open(edges, 'rb') as fi:
                 data = pickle.load(fi)
                 x.nodes = data['nodes']
@@ -77,7 +83,7 @@ class ChemicalSpaceGraph:
         ]
         self.stream.add_node(*nodes)
         edges = [
-            graph.Edge(x, y, distance=self.edges[(x, y)])
+            graph.Edge(x, y, directed=False, weight=1 - self.edges[(x, y)] / 20)
             for x, y in self.edges
         ]
         self.stream.add_edge(*edges)
