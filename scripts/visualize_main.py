@@ -56,7 +56,7 @@ def main(args):
     distances = pd.Series(list(graph.edges.values()))
     print(distances.describe())
     print('Starting Gephi streaming...')
-    graph.gephi_start(args.gephi_workspace)
+    graph.gephi_start(args.threshold, args.gephi_workspace)
 
 
 if __name__ == '__main__':
