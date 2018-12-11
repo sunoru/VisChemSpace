@@ -22,6 +22,7 @@ class NMRVector(SpectrumVector):
 
 
 class IRVector(SpectrumVector):
+    SCALE = 0.1  # 5.98 / 1426.66 * 53363 / 9635
     wave_number_range: (float, float)
 
     def __init__(self, smiles, data, bin_width, wave_number_range):
@@ -34,4 +35,6 @@ class IRVector(SpectrumVector):
         indices, values = data
         vector = np.zeros(old_data.num_bins)
         vector.put(indices, values)
+        # For a more consistent vector to NMR.
+        vector = vector * IRVector.SCALE
         return cls(smiles, vector, old_data.bin_size, old_data.wn_range)

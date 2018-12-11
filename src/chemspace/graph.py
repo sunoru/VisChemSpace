@@ -24,11 +24,11 @@ class ChemicalSpaceGraph:
         # DOI: 10.1021/jm401411z</del>
         # TODO: Find a good method.
         # Cohen's Kappa
-        xx = np.ceil(x * 10)
-        yy = np.ceil(y * 10)
-        return cohen_kappa_score(xx, yy)
+        # xx = np.ceil(x * 10)
+        # yy = np.ceil(y * 10)
+        # return cohen_kappa_score(xx, yy)
         # It's now just Euclidean distance.
-        # return 1 / np.linalg.norm(x - y)
+        return np.linalg.norm(x - y)
 
     def set_fingerprints(self, fingerprints: [Fingerprints]):
         self.fingerprints_df = pd.DataFrame({

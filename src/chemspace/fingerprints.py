@@ -55,7 +55,7 @@ class Fingerprints:
             fingerprints[start + i] = s
 
     @staticmethod
-    def _get_fingerprints_by_width(nmr, ir, nmr_width=0.1, ir_width=0.2):
+    def _get_fingerprints_by_width(nmr, ir, nmr_width=0.3, ir_width=111.7):
         nmr_length = int(np.ceil(nmr.bin_width * nmr.data.size / nmr_width))
         ir_length = int(np.ceil(ir.bin_width * ir.data.size / ir_width))
         length = nmr_length + ir_length
