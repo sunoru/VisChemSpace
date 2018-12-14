@@ -4,3 +4,6 @@
 [submodule "deps/sirms"]
 	path = deps/sirms
 	url = git@github.com:sunoru/sirms.git
+[submodule "report"]
+	path = report
+	url = git@github.com:sunoru/VisChemSpace_report.git

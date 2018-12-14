@@ -40,18 +40,19 @@ class Fingerprints:
             original_range = width_range / spectrum.bin_width
             index_range = [int(x) for x in (np.ceil(original_range[0]), np.floor(original_range[1]))]
             s = 0.0
-            w = 0.0
+            # w = 0.0
             if index_range[0] > original_range[0]:
                 s += (index_range[0] - original_range[0]) * spectrum.data[index_range[0] - 1]
-                w += index_range[0] - original_range[0]
+                # w += index_range[0] - original_range[0]
             if index_range[1] < original_range[1] and index_range[1] < spectrum.data.size:
                 s += (original_range[1] - index_range[1]) * spectrum.data[index_range[1]]
-                w += original_range[1] - index_range[1]
+                # w += original_range[1] - index_range[1]
             if index_range[1] > spectrum.data.size:
                 index_range[1] = spectrum.data.size
             s += spectrum.data[index_range[0]:index_range[1]].sum()
-            w += (index_range[1] - index_range[0]) * spectrum.bin_width
-            s /= w
+            # w += (index_range[1] - index_range[0]) * spectrum.bin_width
+            # s /= w
+            s /= width
             fingerprints[start + i] = s
 
     @staticmethod
