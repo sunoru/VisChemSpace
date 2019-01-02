@@ -1,7 +1,8 @@
+#!/bin/env python3
+
 import argparse
 import os
 
-import numpy as np
 import pandas as pd
 
 from chemspace import Fingerprints, load_data, NMRVector, IRVector, ChemicalSpaceGraph
@@ -9,16 +10,20 @@ from chemspace import Fingerprints, load_data, NMRVector, IRVector, ChemicalSpac
 
 def parse_args():
     parser = argparse.ArgumentParser(description='The complete pipeline.')
-    parser.add_argument('nmr_input', metavar='NMR', type=str, default='',
+    parser.add_argument('nmr_input', metavar='NMR', type=str,
                         help='NMR input file (pickle format).')
-    parser.add_argument('ir_input', metavar='IR', type=str, default = '',
+    parser.add_argument('ir_input', metavar='IR', type=str,
                         help='IR (loader) input file (pickle format).')
-    parser.add_argument('--nmr_width', type=float, default=0.1,
+    parser.add_argument('--nmr_width', type=float, default=0.3,
                         help='Width of each bin in the fingerprints for NMR spectra.')
-    parser.add_argument('--ir_width', type=float, default=0.2,
+    parser.add_argument('--ir_width', type=float, default=111.7,
                         help='Width of each bin in the fingerprints for IR spectra.')
-    parser.add_argument('--threshold', type=float, default=3000,
+    parser.add_argument('--ir_scale', type=float, default=0.1,
+                        help='Scale for values of IR spectra.')
+    parser.add_argument('--threshold', type=float, default=28,
                         help='Threshold for similarity.')
+    parser.add_argument('--base', type=str, default=None,
+                        help='Base molecule. Use the first one if not set.')
     parser.add_argument('--fingerprints-cache', type=str, default='cache.h5',
                         help='Use the cache file for fingerprints.')
     parser.add_argument('--graph-cache', type=str, default='cache.p',
@@ -30,7 +35,7 @@ def parse_args():
 
 def main(args):
     if os.path.exists(args.fingerprints_cache) or os.path.exists(args.graph_cache):
-        graph = ChemicalSpaceGraph.from_file(args.fingerprints_cache, args.graph_cache)
+        graph = ChemicalSpaceGraph.from_file(args.fingerprints_cache, args.graph_cache, args.base)
     else:
         nmr, ir = load_data(args.nmr_input, args.ir_input)
         nmr_vectors = [NMRVector.from_old(x) for x in nmr]
@@ -43,10 +48,14 @@ def main(args):
         all_fingerprints = []
         for i, (nmr, ir) in enumerate(zip(nmr_vectors, ir_vectors)):
             print('Generating fingerprints for %s... (%d/%d)\r' % (nmr.smiles, i + 1, length), end='')
-            all_fingerprints.append(Fingerprints(nmr, ir, nmr_width=args.nmr_width, ir_width=args.ir_width))
+            all_fingerprints.append(Fingerprints(
+                nmr, ir,
+                nmr_width=args.nmr_width, ir_width=args.ir_width,
+                ir_scale=args.ir_scale
+            ))
         print()
         graph = ChemicalSpaceGraph()
-        graph.set_fingerprints(all_fingerprints)
+        graph.set_fingerprints(all_fingerprints, args.base)
         print('Saving fingerprints to %s...' % args.fingerprints_cache)
         graph.save_fingerprints(args.fingerprints_cache)
     if not graph.edges:

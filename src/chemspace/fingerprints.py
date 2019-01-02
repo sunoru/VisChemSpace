@@ -34,7 +34,8 @@ class Fingerprints:
         return fingerprints
 
     @staticmethod
-    def _average_by_width(length, spectrum, width, fingerprints, start=0):
+    def _average_by_width(length, spectrum, width, fingerprints, start=0, scale=1.0):
+        data = spectrum.data * scale
         for i in range(length):
             width_range = (np.array([0, 1]) + i) * width
             original_range = width_range / spectrum.bin_width
@@ -42,25 +43,25 @@ class Fingerprints:
             s = 0.0
             # w = 0.0
             if index_range[0] > original_range[0]:
-                s += (index_range[0] - original_range[0]) * spectrum.data[index_range[0] - 1]
+                s += (index_range[0] - original_range[0]) * data[index_range[0] - 1]
                 # w += index_range[0] - original_range[0]
-            if index_range[1] < original_range[1] and index_range[1] < spectrum.data.size:
-                s += (original_range[1] - index_range[1]) * spectrum.data[index_range[1]]
+            if index_range[1] < original_range[1] and index_range[1] < data.size:
+                s += (original_range[1] - index_range[1]) * data[index_range[1]]
                 # w += original_range[1] - index_range[1]
-            if index_range[1] > spectrum.data.size:
-                index_range[1] = spectrum.data.size
-            s += spectrum.data[index_range[0]:index_range[1]].sum()
+            if index_range[1] > data.size:
+                index_range[1] = data.size
+            s += data[index_range[0]:index_range[1]].sum()
             # w += (index_range[1] - index_range[0]) * spectrum.bin_width
             # s /= w
             s /= width
             fingerprints[start + i] = s
 
     @staticmethod
-    def _get_fingerprints_by_width(nmr, ir, nmr_width=0.3, ir_width=111.7):
+    def _get_fingerprints_by_width(nmr, ir, nmr_width=0.3, ir_width=111.7, ir_scale=0.1):
         nmr_length = int(np.ceil(nmr.bin_width * nmr.data.size / nmr_width))
         ir_length = int(np.ceil(ir.bin_width * ir.data.size / ir_width))
         length = nmr_length + ir_length
         fingerprints = np.empty(length, dtype=float)
         Fingerprints._average_by_width(nmr_length, nmr, nmr_width, fingerprints)
-        Fingerprints._average_by_width(ir_length, ir, ir_width, fingerprints, nmr_length)
+        Fingerprints._average_by_width(ir_length, ir, ir_width, fingerprints, nmr_length, ir_scale)
         return fingerprints

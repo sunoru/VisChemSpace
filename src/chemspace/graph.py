@@ -5,7 +5,7 @@ import pandas as pd
 import pickle
 from gephistreamer import graph, streamer
 from itertools import combinations
-from sklearn.metrics import cohen_kappa_score
+# from sklearn.metrics import cohen_kappa_score
 from chemspace import Fingerprints
 
 
@@ -14,29 +14,28 @@ class ChemicalSpaceGraph:
     nodes: [str] = None
     edges: {(str, str): float} = None
     stream = None
+    base: str
 
     def __init__(self):
         pass
 
     @staticmethod
     def similarity(x: pd.Series, y: pd.Series):
-        # <del>A method based on Tanimoto Similarity
-        # DOI: 10.1021/jm401411z</del>
         # TODO: Find a good method.
-        # Cohen's Kappa
-        # xx = np.ceil(x * 10)
-        # yy = np.ceil(y * 10)
-        # return cohen_kappa_score(xx, yy)
         # It's now just Euclidean distance.
         return np.linalg.norm(x - y)
 
-    def set_fingerprints(self, fingerprints: [Fingerprints]):
+    def set_fingerprints(self, fingerprints: [Fingerprints], base=None):
         self.fingerprints_df = pd.DataFrame({
             x.smiles: x.data for x in fingerprints
         })
+        if not base:
+            base = fingerprints[0].smiles
+        self.base = base
+        assert self.base in self.fingerprints_df
 
-    def generate_graph(self, threshold=0.2, log=False):
-        self.nodes = list(self.fingerprints_df.columns)  # [:200]  # TODO
+    def generate_graph(self, threshold=28, log=False):
+        self.nodes = list(self.fingerprints_df.columns)
         self.edges = {}
         possible_edges = list(combinations(self.nodes, 2))
         length = len(possible_edges)
@@ -48,7 +47,7 @@ class ChemicalSpaceGraph:
             d = self.similarity(x, y)
             if log and i % 5000 == 0:
                 print(' %f\r' % d, end='')
-            if d >= threshold:
+            if d <= threshold:
                 self.edges[(v1, v2)] = d
         if log:
             print('\nGraph generated: %d nodes and %d edges.' % (len(self.nodes), len(self.edges)))
@@ -64,7 +63,7 @@ class ChemicalSpaceGraph:
             }, fo)
 
     @classmethod
-    def from_file(cls, fingerprints, edges):
+    def from_file(cls, fingerprints, edges, base=None):
         x = cls()
         if fingerprints and os.path.exists(fingerprints):
             x.fingerprints_df = pd.read_hdf(fingerprints, 'fingerprints')
@@ -73,22 +72,25 @@ class ChemicalSpaceGraph:
                 data = pickle.load(fi)
                 x.nodes = data['nodes']
                 x.edges = data['edges']
+        if not base:
+            base = x.nodes[0]
+        x.base = base
         return x
 
-    def gephi_start(self, threshold=0.2, workspace='chemspace'):
+    def gephi_start(self, threshold=28, workspace='chemspace'):
         self.stream = streamer.Streamer(streamer.GephiWS(workspace=workspace))
+
+        base = self.fingerprints_df[self.base]
         nodes = [
-            graph.Node(x)
+            graph.Node(x, d=ChemicalSpaceGraph.similarity(self.fingerprints_df[x], base))
             for x in self.nodes
         ]
         self.stream.add_node(*nodes)
-        # similarities = pd.Series(list(self.edges.values()))
-        # m = similarities.min()
-        # k = 1 / (similarities.max() - m)
+        similarities = pd.Series(list(self.edges.values()))
+        m = similarities.max()
         edges = [
-            graph.Edge(x, y, directed=False, weight=self.edges[(x, y)])
-            # graph.Edge(x, y, directed=False, weight=k * (self.edges[(x, y)] - m))
+            graph.Edge(x, y, directed=False, weight=1 - self.edges[(x, y)] / m, label=self.edges[(x, y)])
             for x, y in self.edges
-            if self.edges[(x, y)] >= threshold
+            if self.edges[(x, y)] <= threshold
         ]
         self.stream.add_edge(*edges)
