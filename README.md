@@ -1,6 +1,7 @@
 # Visualization for Chemical Multi-Spectral Space
 
-Scripts for exploring the chemical space with spectral (NMR, IR) data. See the [complete report](./report/report.pdf).
+Scripts for exploring the chemical space with spectral (NMR, IR) data. The complete report can be found in the
+[release page](https://github.com/sunoru/VisChemSpace/releases).
 
 ## Requirements
 
