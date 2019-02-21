@@ -1,7 +1,7 @@
 import pickle
 import sys
 import chemspace.deps.nmr_vectors as nmr_vectors
-from chemspace.deps.ir_vectors import IR_Spectra_Loader 
+from chemspace.deps.ir_vectors import IR_Spectra_Loader
 
 
 def load_file(filename):
@@ -18,3 +18,4 @@ def load_data(nmr_file, ir_file):
 load_nmr = load_ir = load_file
 sys.modules['vectorize'] = nmr_vectors
 sys.modules['__main__'].IR_Spectra_Loader = IR_Spectra_Loader
+sys.modules['__main__'].Mol_NMR_Vector = nmr_vectors.Mol_NMR_Vector

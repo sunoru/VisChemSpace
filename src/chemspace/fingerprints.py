@@ -59,7 +59,8 @@ class Fingerprints:
     @staticmethod
     def _get_fingerprints_by_width(nmr, ir, nmr_width=0.3, ir_width=111.7, ir_scale=0.1):
         nmr_length = int(np.ceil(nmr.bin_width * nmr.data.size / nmr_width))
-        ir_length = int(np.ceil(ir.bin_width * ir.data.size / ir_width))
+        ir_length = int(np.ceil(ir.bin_width * ir.data.size / ir_width)) if ir_width <= 100000 else 0
+        # maybe not include IR data.
         length = nmr_length + ir_length
         fingerprints = np.empty(length, dtype=float)
         Fingerprints._average_by_width(nmr_length, nmr, nmr_width, fingerprints)

@@ -81,9 +81,18 @@ class ChemicalSpaceGraph:
         self.stream = streamer.Streamer(streamer.GephiWS(workspace=workspace))
 
         base = self.fingerprints_df[self.base]
+        distances = [[ChemicalSpaceGraph.similarity(self.fingerprints_df[x], base), x] for x in self.nodes]
+        distances.sort()
+        rankings = {
+            x[1]: [i, x[0]]
+            for i, x in enumerate(distances)
+        }
         nodes = [
-            graph.Node(x, d=ChemicalSpaceGraph.similarity(self.fingerprints_df[x], base))
-            for x in self.nodes
+            graph.Node(
+                x,
+                distance=rankings[x][1],
+                ranking=rankings[x][0]
+            ) for x in self.nodes
         ]
         self.stream.add_node(*nodes)
         similarities = pd.Series(list(self.edges.values()))
